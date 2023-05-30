@@ -45,4 +45,4 @@ My idea is to create an open source and economic home automation bus alternative
 
 Currently the firmware can be installed on STM32 chips and is built to be subsequently reconfigured without the need to recompile the code.
 
-Currently reconfiguration is only possible via Serial Monitor. In development I have the configuration via canbus and a program useful for reading and writing on the device (https://github.com/cristiandc01/NodeConfigurator)
+Currently reconfiguration is only possible via Serial Monitor. In development I have the configuration via canbus and a program useful for reading and writing on the device (https://github.com/cristiandc01/CANodeConfigurator)
