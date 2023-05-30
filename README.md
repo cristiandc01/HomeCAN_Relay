@@ -32,7 +32,7 @@ To exit the config mode reconnect the PA0 pin to gnd or write "exit conf" in the
 
 ##Configuration via CANBUS
 The firmware also support configuration via canbus. Like uart configuration this mode require the device in configuration mode by connectin PA0 to gnd for arround 10sec.
-For semplicity i suggest to use CANodeConfigurator software with Arduino CANHacker node used for comunication connected directly to the device via can wires.
+For semplicity i suggest to use CANodeConfigurator (https://github.com/cristiandc01/CANodeConfigurator) software with Arduino CANHacker node used for comunication connected directly to the device via can wires.
 
 Open the program and select canbus option. select the canhacker serial port using the dropdown menu in the top right corner and click to connect.
 If the device is already in config mode, click on "READ DATA". The program now read the configuration actualy writed in the node.
@@ -45,4 +45,4 @@ My idea is to create an open source and economic home automation bus alternative
 
 Currently the firmware can be installed on STM32 chips and is built to be subsequently reconfigured without the need to recompile the code.
 
-Currently reconfiguration is only possible via Serial Monitor. In development I have the configuration via canbus and a program useful for reading and writing on the device (https://github.com/cristiandc01/CANodeConfigurator)
+
