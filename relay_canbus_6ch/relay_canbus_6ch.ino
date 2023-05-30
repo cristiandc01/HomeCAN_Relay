@@ -38,8 +38,8 @@ To exit the config mode reconnect the PA0 pin to gnd or write "exit conf" in the
 
 // tx frame setup #1
 
-#define input1 PC14     // Pin for controlling relay1
-#define in_conf PA0     // Pin for enter in config mode
+#define input1 PC14      // Pin for controlling relay1
+#define in_conf PA0      // Pin for enter in config mode
 uint32_t txDly = 10000;  // mSec
 
 bool configMode = false;
@@ -47,8 +47,9 @@ int my_id = 0x101;
 int id, fltIdx;
 static CAN_message_t CAN_RX_msg, CAN_TX_msg;
 int stato1, stato2, stato3, stato4, stato5, stato6;
-bool awayMode, away1, away2, away3, away4, away5, away6, inAway, ep_update;
-int away_id;
+bool bsave1 = true, bsave2 = true, bsave3 = true, bsave4 = true, bsave5 = true, bsave6 = true;  // save or not the state;
+bool gblMode, gbl1, gbl2, gbl3, gbl4, gbl5, gbl6, ingbl, ep_update;
+int gbl_id;
 
 
 STM32_CAN Can(CAN1, DEF);  //Use PA11/12 pins for CAN1.
@@ -149,53 +150,167 @@ void canISR() {
       } else if (CAN_RX_msg.buf[0] == 2) {
         update_all_state();
       }
-    } 
+    } else if (gblMode) {
+      if (CAN_RX_msg.id == gbl_id) {
+        if (CAN_RX_msg.buf[0] == 0) {
+          if (CAN_RX_msg.buf[1] == 0) {
+            if (CAN_RX_msg.buf[2] == 0) {
+              if (gbl1) {
+                digitalWrite(rele1, 1);
+                stato1 = 0;
+                update_state1();
+              }
+
+              if (gbl2) {
+                digitalWrite(rele2, 1);
+                stato2 = 0;
+                update_state2();
+              }
+
+              if (gbl3) {
+                digitalWrite(rele3, 1);
+                stato3 = 0;
+                update_state3();
+              }
+
+              if (gbl4) {
+                digitalWrite(rele4, 1);
+                stato4 = 0;
+                update_state4();
+              }
+
+              if (gbl5) {
+                digitalWrite(rele5, 1);
+                stato5 = 0;
+                update_state5();
+              }
+
+              if (gbl6) {
+                digitalWrite(rele6, 1);
+                stato6 = 0;
+                update_state6();
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
 void setup() {
   Can.begin();
-  Can.setBaudRate(250000);  //250KBPS
+  Can.setBaudRate(250000);  //250KBPS    // SET SPEED
   Serial.begin(9600);
   pinMode(in_conf, INPUT_PULLUP);
   pinMode(input1, INPUT_PULLUP);
   EEPROM.get(1, my_id);
-
+  EEPROM.get(21, gbl_id);
 
   configMode = EEPROM.read(0);
+  /*
   Serial.print("SetupMode: ");
   Serial.println(configMode);
   Serial.print("my ID (HEX): 0x");
   Serial.println(my_id, HEX);
   Serial.print("my ID: ");
   Serial.println(my_id);
-  Serial.print("away ID (HEX): 0x");
-  Serial.println(away_id, HEX);
-  Serial.print("away ID: ");
-  Serial.println(away_id);
+  Serial.print("gbl ID (HEX): 0x");
+  Serial.println(gbl_id, HEX);
+  Serial.print("gbl ID: ");
+  Serial.println(gbl_id);
+  */
   pinMode(bluePillLED, OUTPUT);
+
+  stato1 = EEPROM.read(11);
+  stato2 = EEPROM.read(12);
+  stato3 = EEPROM.read(13);
+  stato4 = EEPROM.read(14);
+  stato5 = EEPROM.read(15);
+  stato6 = EEPROM.read(16);
+
+
+
+  gblMode = EEPROM.read(20);
+  gbl1 = EEPROM.read(25);
+  gbl2 = EEPROM.read(26);
+  gbl3 = EEPROM.read(27);
+  gbl4 = EEPROM.read(28);
+  gbl5 = EEPROM.read(29);
+  gbl6 = EEPROM.read(30);
 
 
   if (configMode == true) {
 
+    CAN_TX_msg.id = (my_id);  // TRANSMIT DISCOVER PACKAGE IN DEVICE ID
+    CAN_TX_msg.len = 3;
+    CAN_TX_msg.buf[0] = 0x05;  // DISCOVER MESSAGE
+    CAN_TX_msg.buf[1] = 0x02;  // DEVICE TYPE
+    CAN_TX_msg.buf[2] = 0x06;  // CHANNEL NUMBER
+
+
+    Can.write(CAN_TX_msg);
     configLoop();
   } else {
     //can.filterMask16Init(0, my_id, 0x7ff);  // filter bank 0, filter 0: allow ID = rxMsgID, mask = 0x7ff (must match)
     //TO DO
   }
 
-  
 
 
+  // 2 = off at boot, 3 = on at boot
+  // this code below also disable the saving state
+  if (stato1 == 2) {
+    stato1 = 0;
+    bsave1 = false;
+  }
+  if (stato2 == 2) {
+    stato2 = 0;
+    bsave2 = false;
+  }
+  if (stato3 == 2) {
+    stato3 = 0;
+    bsave3 = false;
+  }
+  if (stato4 == 2) {
+    stato4 = 0;
+    bsave4 = false;
+  }
+  if (stato5 == 2) {
+    stato5 = 0;
+    bsave5 = false;
+  }
+  if (stato6 == 2) {
+    stato6 = 0;
+    bsave6 = false;
+  }
 
-  
-    stato1 = EEPROM.read(11);
-    stato2 = EEPROM.read(12);
-    stato3 = EEPROM.read(13);
-    stato4 = EEPROM.read(14);
-    stato5 = EEPROM.read(15);
-    stato6 = EEPROM.read(16);
-  
+  if (stato1 == 3) {
+    stato1 = 1;
+    bsave1 = false;
+  }
+  if (stato2 == 3) {
+    stato2 = 1;
+    bsave2 = false;
+  }
+  if (stato3 == 3) {
+    stato3 = 1;
+    bsave3 = false;
+  }
+  if (stato4 == 3) {
+    stato4 = 1;
+    bsave4 = false;
+  }
+  if (stato5 == 3) {
+    stato5 = 1;
+    bsave5 = false;
+  }
+  if (stato6 == 3) {
+    stato6 = 1;
+    bsave6 = false;
+  }
+
+
   pinMode(rele1, OUTPUT);
   digitalWrite(rele1, !stato1);
   pinMode(rele2, OUTPUT);
@@ -209,7 +324,7 @@ void setup() {
   pinMode(rele6, OUTPUT);
   digitalWrite(rele6, !stato6);
 
-
+  /*
   Serial.print("stato 1: ");
   Serial.println(stato1);
   Serial.print("stato 2: ");
@@ -222,19 +337,22 @@ void setup() {
   Serial.println(stato5);
   Serial.print("stato 6: ");
   Serial.println(stato6);
-  Serial.println("AWAY Configuration");
-  Serial.print("away 1: ");
-  Serial.println(away1);
-  Serial.print("away 2: ");
-  Serial.println(away2);
-  Serial.print("away 3: ");
-  Serial.println(away3);
-  Serial.print("away 4: ");
-  Serial.println(away4);
-  Serial.print("away 5: ");
-  Serial.println(away5);
-  Serial.print("away 6: ");
-  Serial.println(away6);
+  Serial.println("gbl Configuration");
+  Serial.print("gbl mode: ");
+  Serial.println(gblMode);
+  Serial.print("gbl 1: ");
+  Serial.println(gbl1);
+  Serial.print("gbl 2: ");
+  Serial.println(gbl2);
+  Serial.print("gbl 3: ");
+  Serial.println(gbl3);
+  Serial.print("gbl 4: ");
+  Serial.println(gbl4);
+  Serial.print("gbl 5: ");
+  Serial.println(gbl5);
+  Serial.print("gbl 6: ");
+  Serial.println(gbl6);
+  */
   CAN_TX_msg.id = (my_id);
   update_all_state();
 }
@@ -242,17 +360,18 @@ void setup() {
 uint32_t last = 0;
 void loop() {
   canISR();
+  readSerial();
   if (millis() / txDly != last) {
-    //update_all_state();
+    update_all_state();
     last = millis() / txDly;
 
     if (ep_update) {
-      EEPROM.update(11, stato1);
-      EEPROM.update(12, stato2);
-      EEPROM.update(13, stato3);
-      EEPROM.update(14, stato4);
-      EEPROM.update(15, stato5);
-      EEPROM.update(16, stato6);
+      if (bsave1) { EEPROM.write(11, stato1);  }
+      if (bsave2) { EEPROM.write(12, stato2);  }
+      if (bsave3) { EEPROM.write(13, stato3);  }
+      if (bsave4) { EEPROM.write(14, stato4);  }
+      if (bsave5) { EEPROM.write(15, stato5);  }
+      if (bsave6) { EEPROM.write(16, stato6);  }
       ep_update = false;
     }
   }
@@ -305,78 +424,13 @@ void loop() {
 }
 
 
-void update_all_state() {
 
-  CAN_TX_msg.len = 7;
-  CAN_TX_msg.buf[0] = 0x02;
-  CAN_TX_msg.buf[1] = stato1;
-  CAN_TX_msg.buf[2] = stato2;
-  CAN_TX_msg.buf[3] = stato3;
-  CAN_TX_msg.buf[4] = stato4;
-  CAN_TX_msg.buf[5] = stato5;
-  CAN_TX_msg.buf[6] = stato6;
+void readSerial() {
+  if (Serial.available()) {
+    String val = Serial.readString();
 
-  Can.write(CAN_TX_msg);
-}
-
-void update_state1() {
-  ep_update = true;
-
-
-  CAN_TX_msg.buf[0] = 0x01;
-  CAN_TX_msg.buf[1] = 0x01;
-  CAN_TX_msg.buf[2] = stato1;
-  CAN_TX_msg.len = 4;
-  Can.write(CAN_TX_msg);
-}
-void update_state2() {
-  ep_update = true;
-
-
-  CAN_TX_msg.buf[0] = 0x01;
-  CAN_TX_msg.buf[1] = 0x02;
-  CAN_TX_msg.buf[2] = stato2;
-  CAN_TX_msg.len = 4;
-  Can.write(CAN_TX_msg);
-}
-void update_state3() {
-  ep_update = true;
-
-
-  CAN_TX_msg.buf[0] = 0x01;
-  CAN_TX_msg.buf[1] = 0x03;
-  CAN_TX_msg.buf[2] = stato3;
-  CAN_TX_msg.len = 4;
-  Can.write(CAN_TX_msg);
-}
-void update_state4() {
-  ep_update = true;
-
-
-  CAN_TX_msg.buf[0] = 0x01;
-  CAN_TX_msg.buf[1] = 0x04;
-  CAN_TX_msg.buf[2] = stato4;
-  CAN_TX_msg.len = 4;
-  Can.write(CAN_TX_msg);
-}
-void update_state5() {
-  ep_update = true;
-
-
-  CAN_TX_msg.buf[0] = 0x01;
-  CAN_TX_msg.buf[1] = 0x05;
-  CAN_TX_msg.buf[2] = stato5;
-  CAN_TX_msg.len = 4;
-  Can.write(CAN_TX_msg);
-}
-void update_state6() {
-  ep_update = true;
-
-
-  CAN_TX_msg.buf[0] = 0x01;
-  CAN_TX_msg.buf[1] = 0x06;
-  CAN_TX_msg.buf[2] = stato6;
-  
-  CAN_TX_msg.len = 4;
-  Can.write(CAN_TX_msg);
+    if (val == "cfm?") {  //print configMode
+      Serial.print("0");
+    }
+  }
 }
