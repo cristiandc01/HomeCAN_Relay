@@ -30,7 +30,7 @@ Now type the command "set id X" where X is the id selected in DEC (range 0-2047)
 
 To exit the config mode reconnect the PA0 pin to gnd or write "exit conf" in the console
 
-##Configuration via CANBUS
+### Configuration via CANBUS
 The firmware also support configuration via canbus. Like uart configuration this mode require the device in configuration mode by connectin PA0 to gnd for arround 10sec.
 For semplicity i suggest to use CANodeConfigurator (https://github.com/cristiandc01/CANodeConfigurator) software with Arduino CANHacker node used for comunication connected directly to the device via can wires.
 
