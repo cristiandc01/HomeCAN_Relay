@@ -1,4 +1,4 @@
-# CANBUS relay Firmware for STM32
+# HomeCAN relay Firmware for STM32
 
 
 This firmware allows you to create a configurable 6ch relay node controlled via canbus
@@ -6,25 +6,32 @@ This firmware allows you to create a configurable 6ch relay node controlled via 
 ## How it works?
 Simply use the canbus line present on the stm32 chips connected to a transceiver to drive up to 6 outputs. All enriched with state saving in eeprom and serial programming of the node ID
 
-##The Protocol
+## The PCB
+
+![full_board](https://github.com/cristiandc01/HomeCAN_Relay/blob/main/Images/full_board.jpeg)
+
+This PCB is the first prototype. Uses the blue_pill development board and a tja1050 can transceiver.
+For power the PCB requires 12V DC which is converted into 5V for the relays and 3.3V for the STM32.
+6 voltage inputs are also available for controlling the outputs.
+
+## The Protocol
 
 The Protocol is described here: https://github.com/cristiandc01/dc_bus
 
 ## How to install and compile
 
 To compile and load the firmware you need to use STM32CUBEIDE software.
+Download this repo and open the project with the ide. 
 
+Connect an stm32 (stm32f103c8t6) to the pc using the st-link tool. 
+Then click the RUN button. the stm software will compile and upload the firmware to the chip.
 
-
-
+You can also run the chip in debug mode.
 ## Configuration guide
 
 The HomeCAN firmware has a configuration string called CODE STRING. this string represents the entire node configuration.
 
 It can be changed using the CAN BUS using UtilityHomeCAN Software.
-
-### Configuration via CANBUS
-
 
 ## The ConfigMode
 
