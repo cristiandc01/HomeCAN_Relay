@@ -6,6 +6,10 @@ This firmware allows you to create a configurable 6ch relay node controlled via 
 ## How it works?
 Simply use the canbus line present on the stm32 chips connected to a transceiver to drive up to 6 outputs. All enriched with state saving in eeprom and serial programming of the node ID
 
+##The Protocol
+
+The Protocol is described here: https://github.com/cristiandc01/dc_bus
+
 ## How to install and compile
 
 To compile and load the firmware you need to use STM32CUBEIDE software.
